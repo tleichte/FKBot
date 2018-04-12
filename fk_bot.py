@@ -140,11 +140,13 @@ async def noon_utc():
     #match time
     while True:
         now_date = datetime.utcnow()
-        if now_date.hour == 0 and now_date.minute == 40:
+        if now_date.hour == 12 and now_date.minute == 0:
             print("NOW NOON UTC: {0}".format(str(now_date)))
             return
         else:
             await asyncio.sleep(60)
+
+
 
 print("Initializing")
 client.loop.create_task(check_for_new_day())
