@@ -18,6 +18,10 @@ SERVER = None
 
 client = Bot(command_prefix=PREFIX)
 
+refresh_time = str(json_file["refresh_time"]).split(":")
+REFR_MINUTE = int(refresh_time[1])
+REFR_HOUR = int(refresh_time[0])
+
 
 @client.command(name='birthday',
                 description="Birthday functions allow the bot to give a user's birthday on demand and wish them a 'Happy Birthday' when it's their day.",
@@ -90,6 +94,8 @@ async def on_ready():
     print("Name: " + client.user.name)
     print("ID: " + client.user.id)
     print("__________________\n")
+    print("Refresh time: " + str(REFR_HOUR) + ":" + str(REFR_MINUTE))
+
     birth_func.populate_birthdays()
     global CHANNEL
     CHANNEL = client.get_channel(CHANNEL_ID)
@@ -97,14 +103,10 @@ async def on_ready():
     SERVER = client.get_server(SERVER_ID)
 
 
-async def wait_for_new_day():
-    await asyncio.sleep(86400)
-
-
 async def check_for_new_day():
     await client.wait_until_ready()
-    await noon_utc()
     while not client.is_closed:
+        await noon_utc()
         now_date = datetime.utcnow()
         birthday_users = birth_func.get_todays_birthdays(now_date.month, now_date.day)
         # server = client.get_server(SERVER_ID)
@@ -124,7 +126,7 @@ async def check_for_new_day():
                             ":birthday::cake::birthday::cake::birthday::cake::birthday::cake::birthday::cake:" \
                             ":birthday::cake::birthday::cake::birthday::cake:"
             await client.send_message(CHANNEL, birthday_str)
-        await wait_for_new_day()
+        await asyncio.sleep(90) #makes sure the time is no longer noon utc
 
 
 async def noon_utc():
@@ -140,7 +142,7 @@ async def noon_utc():
     #match time
     while True:
         now_date = datetime.utcnow()
-        if now_date.hour == 12 and now_date.minute == 0:
+        if now_date.hour == REFR_HOUR and now_date.minute == REFR_MINUTE:
             print("NOW NOON UTC: {0}".format(str(now_date)))
             return
         else:
