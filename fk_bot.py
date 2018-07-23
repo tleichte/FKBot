@@ -95,6 +95,7 @@ async def on_ready():
     print("ID: " + client.user.id)
     print("__________________\n")
     print("Refresh time: " + str(REFR_HOUR) + ":" + str(REFR_MINUTE))
+    print("Current time: " + str(datetime.utcnow()))
 
     birth_func.populate_birthdays()
     global CHANNEL
@@ -105,28 +106,31 @@ async def on_ready():
 
 async def check_for_new_day():
     await client.wait_until_ready()
+    await sync_seconds()
     while not client.is_closed:
-        await noon_utc()
-        now_date = datetime.utcnow()
-        birthday_users = birth_func.get_todays_birthdays(now_date.month, now_date.day)
-        # server = client.get_server(SERVER_ID)
-        if len(birthday_users) is not 0:
-            birthday_str = "@everyone\n\n:birthday::cake::birthday::cake::birthday::cake::birthday::cake::birthday:" \
-                           ":cake::birthday::cake::birthday::cake::birthday::cake::birthday::cake::birthday::cake:" \
-                           ":birthday::cake::birthday::cake::birthday::cake::birthday::cake::birthday::cake:" \
-                           ":birthday::cake::birthday::cake::birthday::cake:\n\n"
-            for user in birthday_users:
-                birthday_str += "{0} IT'S YOUR BIRTHDAY TODAY!!! :balloon::confetti_ball::balloon::confetti_ball:" \
-                                ":balloon::confetti_ball::balloon::confetti_ball::balloon::confetti_ball::balloon:" \
-                                ":confetti_ball::balloon::confetti_ball::balloon::confetti_ball::balloon:" \
-                                ":confetti_ball::balloon::confetti_ball::balloon::confetti_ball::balloon:" \
-                                "\n".format(SERVER.get_member(user).mention)
-            birthday_str += "\n:birthday::cake::birthday::cake::birthday::cake::birthday::cake::birthday::cake:" \
-                            ":birthday::cake::birthday::cake::birthday::cake::birthday::cake::birthday::cake:" \
-                            ":birthday::cake::birthday::cake::birthday::cake::birthday::cake::birthday::cake:" \
-                            ":birthday::cake::birthday::cake::birthday::cake:"
-            await client.send_message(CHANNEL, birthday_str)
-        await asyncio.sleep(90) #makes sure the time is no longer noon utc
+        new_day = time_is_refresh()
+        if new_day:
+            now_date = datetime.utcnow()
+            print("Now refresh time! " + str(now_date))
+            birthday_users = birth_func.get_todays_birthdays(now_date.month, now_date.day)
+            # server = client.get_server(SERVER_ID)
+            if len(birthday_users) is not 0:
+                birthday_str = "@everyone\n\n:birthday::cake::birthday::cake::birthday::cake::birthday::cake::birthday:" \
+                               ":cake::birthday::cake::birthday::cake::birthday::cake::birthday::cake::birthday::cake:" \
+                               ":birthday::cake::birthday::cake::birthday::cake::birthday::cake::birthday::cake:" \
+                               ":birthday::cake::birthday::cake::birthday::cake:\n\n"
+                for user in birthday_users:
+                    birthday_str += "{0} IT'S YOUR BIRTHDAY TODAY!!! :balloon::confetti_ball::balloon::confetti_ball:" \
+                                    ":balloon::confetti_ball::balloon::confetti_ball::balloon::confetti_ball::balloon:" \
+                                    ":confetti_ball::balloon::confetti_ball::balloon::confetti_ball::balloon:" \
+                                    ":confetti_ball::balloon::confetti_ball::balloon::confetti_ball::balloon:" \
+                                    "\n".format(SERVER.get_member(user).mention)
+                birthday_str += "\n:birthday::cake::birthday::cake::birthday::cake::birthday::cake::birthday::cake:" \
+                                ":birthday::cake::birthday::cake::birthday::cake::birthday::cake::birthday::cake:" \
+                                ":birthday::cake::birthday::cake::birthday::cake::birthday::cake::birthday::cake:" \
+                                ":birthday::cake::birthday::cake::birthday::cake:"
+                await client.send_message(CHANNEL, birthday_str)
+        await asyncio.sleep(60)  # wait until next second
 
 
 async def noon_utc():
@@ -148,6 +152,19 @@ async def noon_utc():
         else:
             await asyncio.sleep(60)
 
+
+async def sync_seconds():
+    while True:
+        now_time = datetime.utcnow()
+        if now_time.second == 0:
+            return
+        else:
+            await asyncio.sleep(1)
+
+
+def time_is_refresh():
+    now_date = datetime.utcnow()
+    return now_date.hour == REFR_HOUR and now_date.minute == REFR_MINUTE
 
 
 print("Initializing")
